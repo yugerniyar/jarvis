@@ -1,0 +1,66 @@
+# 训练环境依赖 - 完整训练工具链
+# 包含模型训练、数据处理、实验跟踪等完整功能
+
+# 深度学习训练框架
+torch==2.1.2+cu121
+torchvision==0.16.2+cu121
+torchaudio==2.1.2+cu121
+pytorch-lightning>=2.0.0  # 训练框架
+
+# 训练加速和优化
+accelerate==1.9.0
+deepspeed>=0.12.0  # 大规模训练
+bitsandbytes>=0.41.0  # 量化训练
+
+# 数据处理和增强
+librosa>=0.10.0
+audiomentations>=0.33.0  # 音频数据增强
+nlpaug>=1.1.11  # NLP数据增强
+
+# 模型库和预训练
+transformers>=4.35.0
+nemo-toolkit[all]>=1.21.0  # NVIDIA训练框架
+speechbrain>=0.5.15
+
+# 实验跟踪和监控
+wandb>=0.16.0  # 实验跟踪
+tensorboard>=2.14.0
+mlflow>=2.8.0
+
+# 数据集处理
+datasets>=2.14.0
+pandas>=2.0.0
+numpy>=1.22,<1.24  # nemo-toolkit兼容
+
+# 模型评估和指标
+evaluate>=0.4.0
+jiwer>=3.0.0  # 语音识别评估
+mir_eval>=0.7  # 音频分离评估
+pesq>=0.0.4  # 语音质量评估
+
+# 数据标注和可视化
+matplotlib>=3.7.0
+seaborn>=0.12.0
+plotly>=5.17.0
+
+# 训练工具
+optuna>=3.4.0  # 超参数优化
+ray[tune]>=2.8.0  # 分布式超参数搜索
+
+# 模型压缩和优化
+onnx>=1.15.0
+onnxruntime-training  # 训练版本
+
+# 音频处理 (完整版)
+resampy>=0.4.0
+pyroomacoustics>=0.7.3  # 房间声学
+webrtcvad==2.0.10
+
+# 分布式训练支持
+mpi4py>=3.1.0
+horovod>=0.28.0
+
+# 开发和调试
+jupyterlab>=4.0.0
+ipywidgets>=8.0.0
+tqdm>=4.66.0

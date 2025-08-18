@@ -19,6 +19,7 @@ def create_directory_structure():
         "config",
         "common", 
         "utils",
+        "frontend",  # Gradio前端
         "data/speaker_embeddings",
         "data/audio_samples", 
         "data/models",
@@ -283,6 +284,9 @@ fastapi==0.104.1
 uvicorn[standard]==0.24.0
 pydantic==2.5.0
 
+# 前端界面
+gradio==4.8.0
+
 # 音频处理
 librosa==0.10.1
 soundfile==0.12.1
@@ -355,6 +359,265 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+''',
+
+        # Gradio前端主文件
+        "frontend/gradio_app.py": '''#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+VoiceWakenAI Gradio 前端界面
+"""
+
+import gradio as gr
+import requests
+import numpy as np
+from pathlib import Path
+import tempfile
+import os
+
+from utils.logger import setup_logger
+from config.settings import settings
+
+logger = setup_logger(__name__)
+
+class VoiceWakenAIUI:
+    """VoiceWakenAI Gradio 界面类"""
+    
+    def __init__(self):
+        self.api_base_url = f"http://{settings.HOST}:{settings.PORT}/api"
+        
+    def voice_chat(self, audio_input, speaker_id="default"):
+        """
+        完整的语音对话流程
+        Args:
+            audio_input: 音频输入（来自麦克风）
+            speaker_id: 说话人ID
+        Returns:
+            处理后的音频输出
+        """
+        if audio_input is None:
+            return None, "请先录制语音"
+            
+        try:
+            logger.info("开始处理语音输入...")
+            
+            # 1. 声纹识别
+            speaker_result = self._call_speaker_recognition(audio_input)
+            if not speaker_result.get("authorized", False):
+                return None, f"声纹识别失败: {speaker_result.get('message', '未授权用户')}"
+            
+            # 2. 语音识别（ASR）
+            asr_result = self._call_asr(audio_input)
+            if not asr_result.get("success", False):
+                return None, f"语音识别失败: {asr_result.get('message', '识别错误')}"
+            
+            text = asr_result.get("text", "")
+            logger.info(f"识别到文本: {text}")
+            
+            # 3. 大语言模型对话
+            llm_result = self._call_llm(text)
+            if not llm_result.get("success", False):
+                return None, f"对话生成失败: {llm_result.get('message', 'LLM错误')}"
+            
+            response_text = llm_result.get("response", "")
+            logger.info(f"LLM响应: {response_text}")
+            
+            # 4. 语音合成（TTS）
+            tts_result = self._call_tts(response_text)
+            if not tts_result.get("success", False):
+                return None, f"语音合成失败: {tts_result.get('message', 'TTS错误')}"
+            
+            # 5. 声线变换（VC）
+            vc_result = self._call_vc(tts_result.get("audio"), speaker_id)
+            if not vc_result.get("success", False):
+                return None, f"声线变换失败: {vc_result.get('message', 'VC错误')}"
+            
+            final_audio = vc_result.get("audio")
+            status = f"✅ 处理完成\\n识别文本: {text}\\n回复文本: {response_text}"
+            
+            return final_audio, status
+            
+        except Exception as e:
+            logger.error(f"语音处理错误: {str(e)}")
+            return None, f"处理失败: {str(e)}"
+    
+    def _call_speaker_recognition(self, audio):
+        """调用声纹识别API"""
+        # TODO: 实现API调用
+        return {"authorized": True, "speaker_id": "user_001"}
+    
+    def _call_asr(self, audio):
+        """调用语音识别API"""
+        # TODO: 实现API调用
+        return {"success": True, "text": "你好，我想了解一下AI技术"}
+    
+    def _call_llm(self, text):
+        """调用大语言模型API"""
+        # TODO: 实现API调用
+        return {"success": True, "response": "AI技术是人工智能的核心，包括机器学习、深度学习等多个领域。"}
+    
+    def _call_tts(self, text):
+        """调用TTS API"""
+        # TODO: 实现API调用
+        return {"success": True, "audio": "dummy_audio_data"}
+    
+    def _call_vc(self, audio, target_speaker):
+        """调用声线变换API"""
+        # TODO: 实现API调用
+        return {"success": True, "audio": audio}
+    
+    def create_interface(self):
+        """创建Gradio界面"""
+        
+        with gr.Blocks(title="VoiceWakenAI - 语音交互AI系统") as interface:
+            gr.Markdown("# 🎤 VoiceWakenAI - 智能语音交互系统")
+            gr.Markdown("### 支持声纹识别唤醒 + 语音对话 + 声线变换")
+            
+            with gr.Row():
+                with gr.Column(scale=2):
+                    # 音频输入
+                    audio_input = gr.Audio(
+                        source="microphone",
+                        type="numpy",
+                        label="🎤 点击录音说话",
+                        format="wav"
+                    )
+                    
+                    # 说话人选择
+                    speaker_choice = gr.Dropdown(
+                        choices=["default", "speaker_1", "speaker_2", "speaker_3"],
+                        value="default",
+                        label="🗣️ 选择目标声线"
+                    )
+                    
+                    # 处理按钮
+                    process_btn = gr.Button("🚀 开始对话", variant="primary")
+                
+                with gr.Column(scale=2):
+                    # 音频输出
+                    audio_output = gr.Audio(
+                        label="🔊 AI回复语音",
+                        type="numpy"
+                    )
+                    
+                    # 状态显示
+                    status_output = gr.Textbox(
+                        label="📋 处理状态",
+                        lines=5,
+                        max_lines=10
+                    )
+            
+            # 绑定事件
+            process_btn.click(
+                fn=self.voice_chat,
+                inputs=[audio_input, speaker_choice],
+                outputs=[audio_output, status_output]
+            )
+            
+            # 示例区域
+            with gr.Row():
+                gr.Markdown("""
+                ### 📖 使用说明
+                1. 点击麦克风按钮开始录音
+                2. 说出您想要对话的内容
+                3. 选择您希望的回复声线
+                4. 点击"开始对话"按钮处理
+                5. 等待AI回复并播放
+                
+                ### ✨ 功能特点
+                - 🔐 声纹识别身份验证
+                - 🎯 高精度语音识别
+                - 🧠 智能对话生成
+                - 🎵 自然语音合成
+                - 🎭 多样声线变换
+                """)
+        
+        return interface
+
+def launch_gradio():
+    """启动Gradio界面"""
+    logger.info("启动 Gradio 前端界面...")
+    
+    # 创建UI实例
+    ui = VoiceWakenAIUI()
+    interface = ui.create_interface()
+    
+    # 启动界面
+    interface.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        share=False,  # 设为True可以生成公网访问链接
+        debug=settings.DEBUG
+    )
+
+if __name__ == "__main__":
+    launch_gradio()
+''',
+
+        # 双模式启动脚本
+        "run_app.py": '''#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+VoiceWakenAI 应用启动器
+支持API模式和UI模式
+"""
+
+import argparse
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+from utils.logger import setup_logger
+
+logger = setup_logger(__name__)
+
+def run_api_server():
+    """启动FastAPI服务器"""
+    logger.info("启动 FastAPI 服务器...")
+    subprocess.run([sys.executable, "main.py"])
+
+def run_gradio_ui():
+    """启动Gradio界面"""
+    logger.info("启动 Gradio 界面...")
+    subprocess.run([sys.executable, "frontend/gradio_app.py"])
+
+def run_both():
+    """同时启动API服务器和Gradio界面"""
+    import threading
+    
+    logger.info("同时启动 API 服务器和 Gradio 界面...")
+    
+    # 启动API服务器（后台线程）
+    api_thread = threading.Thread(target=run_api_server, daemon=True)
+    api_thread.start()
+    
+    # 等待API服务器启动
+    time.sleep(3)
+    
+    # 启动Gradio界面（主线程）
+    run_gradio_ui()
+
+def main():
+    parser = argparse.ArgumentParser(description="VoiceWakenAI 启动器")
+    parser.add_argument(
+        "--mode", 
+        choices=["api", "ui", "both"], 
+        default="both",
+        help="启动模式: api(仅API), ui(仅界面), both(同时启动)"
+    )
+    
+    args = parser.parse_args()
+    
+    if args.mode == "api":
+        run_api_server()
+    elif args.mode == "ui":
+        run_gradio_ui()
+    elif args.mode == "both":
+        run_both()
+
+if __name__ == "__main__":
+    main()
 ''',
     }
     
@@ -476,11 +739,21 @@ def main():
     
     print("\n✅ 项目结构创建完成!")
     print("\n📋 接下来的步骤:")
-    print("1. cd VoiceWakenAI")
-    print("2. python -m venv venv")
-    print("3. venv\\Scripts\\activate  (Windows) 或 source venv/bin/activate (Linux/Mac)")
-    print("4. pip install -r requirements.txt")
-    print("5. python main.py")
+    print("1. python -m venv venv")
+    print("2. venv\\Scripts\\activate  (Windows) 或 source venv/bin/activate (Linux/Mac)")
+    print("3. pip install -r requirements.txt")
+    print("\n🚀 启动方式选择:")
+    print("【推荐】同时启动 API + UI:")
+    print("   python run_app.py --mode both")
+    print("\n仅启动 FastAPI 服务:")
+    print("   python run_app.py --mode api")
+    print("   或 python main.py")
+    print("\n仅启动 Gradio 界面:")
+    print("   python run_app.py --mode ui")
+    print("   或 python frontend/gradio_app.py")
+    print("\n🌐 访问地址:")
+    print("   API 文档: http://localhost:8000/docs")
+    print("   Gradio 界面: http://localhost:7860")
     print("\n🎯 开始开发您的AI语音交互系统吧!")
 
 if __name__ == "__main__":

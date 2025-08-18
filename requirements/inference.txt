@@ -1,0 +1,72 @@
+# 推理环境依赖 - 轻量级部署
+# 仅包含模型推理所需的核心依赖
+
+# 深度学习推理框架
+torch==2.1.2+cu121  # GPU推理版本
+torchvision==0.16.2+cu121
+torchaudio==2.1.2+cu121
+
+# 模型优化和推理加速
+onnx>=1.15.0
+onnxruntime-gpu>=1.16.0
+triton==2.1.0  # PyTorch内置
+
+# 音频处理 (推理优化版本)
+librosa>=0.10.0
+resampy>=0.4.0
+
+# 预训练模型和推理工具
+transformers>=4.35.0  # 轻量版本
+faster-whisper>=0.10.0
+
+# 语音处理推理库
+speechbrain>=0.5.15  # 仅推理功能
+resemblyzer>=0.1.4
+
+# 模型部署和服务
+huggingface_hub>=0.19.0
+safetensors>=0.4.0
+
+# 音频编解码
+webrtcvad==2.0.10
+pyaudio==0.2.13  # 实时音频
+
+# 数据处理（推理优化）
+numpy>=1.24.2  # 与onnxruntime-gpu兼容
+pandas>=2.0.0
+scipy>=1.11.0
+
+# Web框架和API服务
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+gradio>=4.0.0
+
+# 推理加速和优化
+optimum[onnxruntime-gpu]>=1.14.0
+accelerate>=1.9.0  # 推理加速
+
+# 缓存和存储
+redis>=5.0.0
+aioredis>=2.0.0
+
+# 监控和日志
+prometheus-client>=0.19.0
+structlog>=23.2.0
+psutil>=5.9.0
+
+# 安全和认证
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+
+# 异步处理
+aiofiles>=23.0.0
+httpx>=0.25.0
+websockets>=12.0
+
+# 配置管理
+pydantic>=2.4.0
+python-dotenv>=1.0.0
+
+# 生产部署
+gunicorn>=21.2.0
