@@ -24,7 +24,7 @@
             }
         },
         {
-            "name": "Python: Current File",
+            "name": "Python: 启动当前文件",
             "type": "python",
             "request": "launch",
             "program": "${file}",

@@ -1,0 +1,128 @@
+# 日志系统配置文件
+# 用于配置整个项目的日志行为
+
+# 基础日志配置
+logging:
+  # 日志目录配置
+  directories:
+    base_dir: "./logs" # 基础日志目录
+    training_dir: "./logs/training" # 训练日志目录
+    inference_dir: "./logs/inference" # 推理日志目录
+    error_dir: "./logs/errors" # 错误日志专用目录
+
+  # 日志文件配置
+  files:
+    all_log: "all.log" # 记录所有级别的日志
+    error_log: "error.log" # 只记录错误和严重错误
+    training_log: "training.log" # 训练专用日志
+    inference_log: "inference.log" # 推理专用日志
+    wake_word_log: "wake_word.log" # 语音唤醒专用日志
+
+  # 日志级别配置
+  levels:
+    root: "INFO" # 根日志器级别
+    console: "INFO" # 控制台输出级别
+    file: "DEBUG" # 文件输出级别
+    error_file: "ERROR" # 错误文件级别
+
+    # 模块特定级别
+    modules:
+      training: "DEBUG" # 训练模块显示详细信息
+      inference: "INFO" # 推理模块正常信息
+      wake_word: "DEBUG" # 语音唤醒调试信息
+      audio: "WARNING" # 音频处理只显示警告以上
+
+  # 日志格式配置
+  formats:
+    standard: "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(message)s"
+    simple: "%(levelname)s - %(message)s"
+    detailed: "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(funcName)s() | %(message)s"
+    json: true # 是否支持JSON格式
+
+  # 日期时间格式
+  datetime_format: "%Y-%m-%d %H:%M:%S"
+
+  # 文件滚动配置
+  rotation:
+    max_bytes: 10485760 # 10MB = 10 * 1024 * 1024
+    backup_count: 5 # 保留5个备份文件
+    when: "midnight" # 按时间滚动：midnight, H, D, W0-W6
+    interval: 1 # 滚动间隔
+
+  # 输出目标配置
+  handlers:
+    console:
+      enabled: true # 是否输出到控制台
+      level: "INFO" # 控制台级别
+      format: "standard" # 使用标准格式
+
+    file:
+      enabled: true # 是否输出到文件
+      level: "DEBUG" # 文件级别
+      format: "detailed" # 使用详细格式
+
+    error_file:
+      enabled: true # 是否单独记录错误
+      level: "ERROR" # 错误文件级别
+      format: "detailed" # 使用详细格式
+
+    # 可选：远程日志（生产环境用）
+    remote:
+      enabled: false # 是否启用远程日志
+      url: "http://logserver:5000/logs" # 日志服务器地址
+      level: "WARNING" # 远程日志级别
+
+  # 特殊配置
+  special:
+    capture_warnings: true # 捕获Python警告
+    disable_existing_loggers: false # 不禁用现有日志器
+    encoding: "utf-8" # 文件编码
+
+    # 性能相关
+    buffering: true # 是否启用缓冲
+    buffer_size: 1024 # 缓冲区大小
+
+    # 调试相关
+    debug_mode: false # 调试模式
+    profiling: false # 是否启用性能分析
+
+# 环境特定配置
+environments:
+  development:
+    logging:
+      levels:
+        root: "DEBUG" # 开发环境显示所有日志
+        console: "DEBUG"
+      handlers:
+        console:
+          enabled: true
+        file:
+          enabled: true
+      special:
+        debug_mode: true
+
+  production:
+    logging:
+      levels:
+        root: "WARNING" # 生产环境只显示重要信息
+        console: "ERROR" # 控制台只显示错误
+      handlers:
+        console:
+          enabled: false # 生产环境不输出控制台
+        remote:
+          enabled: true # 启用远程日志
+      rotation:
+        max_bytes: 52428800 # 生产环境更大的文件：50MB
+        backup_count: 10 # 保留更多备份
+
+  testing:
+    logging:
+      directories:
+        base_dir: "./test_logs" # 测试专用目录
+      levels:
+        root: "DEBUG"
+      handlers:
+        console:
+          enabled: false # 测试时不输出控制台
+        file:
+          enabled: true

@@ -1,0 +1,112 @@
+# 开发环境配置示例
+# 这个文件展示了如何使用配置系统
+
+# 训练配置
+training:
+  epochs: 100
+  early_stopping: true
+  early_stopping_patience: 15
+
+  # 模型配置
+  model:
+    type: "cnn"
+    num_classes: 2
+    dropout_rate: 0.3
+
+  # 数据配置
+  data:
+    train_dir: "/opt/workspace/code/SpeechRecognitionpython/data/wake_word/train"
+    val_dir: "/opt/workspace/code/SpeechRecognitionpython/data/wake_word/val"
+    dataset_type: "spectrogram"
+    batch_size: 32
+    wake_word: "xiaoming"
+    sample_rate: 16000
+    duration: 1.0
+
+  # 优化器配置
+  optimizer:
+    type: "adam"
+    lr: 0.001
+    weight_decay: 0.0001
+
+  # 调度器配置
+  scheduler:
+    type: "step"
+    step_size: 30
+    gamma: 0.1
+
+  # 输出目录
+  output_dir: "/opt/workspace/code/SpeechRecognitionpython/training/wake_word/outputs"
+
+# 推理配置
+inference:
+  # API服务配置
+  api:
+    host: "0.0.0.0"
+    port: 8000
+    workers: 1
+
+  # 语音唤醒配置
+  wake_word:
+    model_path: "/opt/workspace/code/SpeechRecognitionpython/training/wake_word/outputs/best_model.pth"
+    threshold: 0.5
+    confidence_threshold: 0.8
+
+  # ASR配置
+  asr:
+    model_name: "whisper"
+    model_size: "base"
+    language: "zh"
+
+  # TTS配置
+  tts:
+    model_name: "coqui"
+    voice_name: "default"
+    language: "zh"
+    speed: 1.0
+
+# 语音唤醒详细配置
+wake_word:
+  enabled: true
+  model_file: "/opt/workspace/code/SpeechRecognitionpython/training/wake_word/outputs/best_model.pth"
+
+  # VAD配置
+  vad:
+    enabled: true
+    mode: 2
+    frame_duration_ms: 30
+
+  # 检测配置
+  detection:
+    wake_words: ["xiaoming"]
+    primary_wake_word: "xiaoming"
+    detection_threshold: 0.5
+    confidence_threshold: 0.8
+
+  # 说话人验证
+  speaker_verification:
+    enabled: true
+    verification_threshold: 0.7
+    enable_adaptation: true
+
+# 音频配置
+audio:
+  # IO配置
+  io:
+    sample_rate: 16000
+    channels: 1
+    bit_depth: 16
+
+  # 预处理配置
+  preprocessing:
+    normalize: true
+    high_pass_filter: true
+    high_pass_cutoff: 80.0
+    remove_silence: true
+
+  # 特征提取配置
+  feature_extraction:
+    n_mfcc: 13
+    n_fft: 2048
+    hop_length: 512
+    n_mels: 80
