@@ -1,0 +1,229 @@
+# 声纹+唤醒词模型完整配置文件
+# 使用说明：修改此文件可以调整所有训练参数
+
+# =========================== 模型架构配置 ===========================
+model:
+  input_dim: 80 # 输入特征维度（Mel频谱图通道数）
+  d_model: 256 # Transformer隐藏层维度
+  emb_dim: 192 # 声纹嵌入维度
+  num_classes: 2 # 唤醒词分类数（0: 非唤醒, 1: 唤醒）
+  num_speakers: 1000 # 最大说话人数量
+  dropout: 0.1 # Dropout概率
+
+  # Conformer配置
+  conformer_layers: 6 # Conformer层数
+  conformer_heads: 8 # 注意力头数
+  conformer_kernel_size: 31 # 卷积核大小
+
+  # SqueezeFormer配置
+  squeeze_layers: 4 # SqueezeFormer层数
+  squeeze_reduction: 4 # 时间压缩倍数
+
+  # ECAPA-TDNN配置
+  ecapa_channels: 512 # ECAPA-TDNN通道数
+
+  # 融合策略
+  fusion_strategy: "attention" # 特征融合方式: attention, gated, mean
+  use_cross_attention: true # 是否使用跨模态注意力
+
+# =========================== 音频处理配置 ===========================
+audio:
+  sample_rate: 16000 # 采样率
+  n_mels: 80 # Mel频谱图通道数
+  n_fft: 512 # FFT点数
+  hop_length: 160 # 帧移
+  win_length: 400 # 窗长
+  max_len: 160 # 最大序列长度（帧数）
+
+  # 数据增强配置
+  augmentation:
+    enabled: true # 是否启用数据增强
+    noise_prob: 0.3 # 添加噪声的概率
+    volume_prob: 0.3 # 音量变化概率
+    time_stretch_prob: 0.2 # 时间拉伸概率
+    spec_augment_prob: 0.5 # SpecAugment概率
+
+    # SpecAugment参数
+    freq_mask_param: 15 # 频率掩码参数
+    time_mask_param: 35 # 时间掩码参数
+
+# =========================== 训练配置 ===========================
+training:
+  # 基础参数
+  batch_size: 32 # 批大小
+  epochs: 100 # 训练轮数
+  learning_rate: 0.001 # 初始学习率
+  weight_decay: 0.0001 # 权重衰减
+
+  # 高级训练技术
+  use_amp: true # 混合精度训练
+  accumulate_grad_batches: 1 # 梯度累积步数
+  gradient_clip_val: 1.0 # 梯度裁剪阈值
+
+  # 早停和检查点
+  patience: 10 # 早停耐心值
+  save_top_k: 3 # 保存最好的k个模型
+  monitor: "val_avg_acc" # 监控指标
+
+  # 验证配置
+  val_check_interval: 1.0 # 验证频率（每个epoch验证一次）
+  log_every_n_steps: 50 # 日志记录频率
+
+# =========================== 优化器配置 ===========================
+optimizer:
+  name: "adamw" # 优化器类型: adamw, adam, sgd
+  lr: 0.001 # 学习率
+  weight_decay: 0.0001 # 权重衰减
+  betas: [0.9, 0.999] # Adam的beta参数
+  eps: 1e-8 # 数值稳定性参数
+
+# =========================== 学习率调度器配置 ===========================
+scheduler:
+  name: "cosine" # 调度器类型: cosine, step, plateau, warmup
+
+  # 余弦退火参数
+  T_0: 10 # 第一次重启的周期
+  T_mult: 2 # 重启周期的倍增因子
+  eta_min: 1e-6 # 最小学习率
+
+  # 阶梯调度器参数
+  step_size: 30 # 步长
+  gamma: 0.1 # 衰减因子
+
+  # 预热参数
+  warmup_epochs: 5 # 预热轮数
+
+# =========================== 损失函数配置 ===========================
+loss:
+  # 任务权重
+  wake_weight: 1.0 # 唤醒词检测权重
+  speaker_weight: 0.5 # 说话人识别权重
+  verify_weight: 0.3 # 声纹验证权重
+
+  # 高级损失配置
+  use_adaptive_weights: true # 自适应权重调节
+  focal_loss: true # 使用焦点损失
+  center_loss_weight: 0.1 # 中心损失权重
+  contrastive_weight: 0.1 # 对比损失权重
+
+  # 焦点损失参数
+  focal_alpha: 0.25 # 焦点损失alpha参数
+  focal_gamma: 2.0 # 焦点损失gamma参数
+
+  # 对比损失参数
+  margin: 1.0 # 对比损失边界
+
+# =========================== 数据路径配置 ===========================
+data:
+  # 数据清单文件路径
+  train_manifest: "data/train_manifest.json"
+  val_manifest: "data/val_manifest.json"
+  test_manifest: "data/test_manifest.json"
+
+  # 数据加载配置
+  num_workers: 4 # 数据加载进程数
+  pin_memory: true # 是否将数据加载到CUDA固定内存
+  persistent_workers: true # 保持工作进程
+
+  # 数据预处理
+  normalize: true # 是否归一化
+  standardize: false # 是否标准化
+
+# =========================== 路径和日志配置 ===========================
+paths:
+  # 输出路径
+  checkpoint_dir: "checkpoints" # 模型保存目录
+  log_dir: "logs" # 日志保存目录
+  output_dir: "outputs" # 输出目录
+
+  # 预训练模型路径
+  pretrained_whisper: null # Whisper预训练模型路径
+  pretrained_wav2vec2: null # Wav2Vec2预训练模型路径
+
+# =========================== 日志和监控配置 ===========================
+logging:
+  # TensorBoard配置
+  use_tensorboard: true
+  tensorboard_log_dir: "runs"
+
+  # 模型监控
+  log_model_graph: true # 记录模型计算图
+  log_gradients: false # 记录梯度分布
+  log_weights: false # 记录权重分布
+
+  # 日志级别
+  level: "INFO" # 日志级别: DEBUG, INFO, WARNING, ERROR
+
+# =========================== 推理配置 ===========================
+inference:
+  # 阈值设置
+  wake_threshold: 0.5 # 唤醒词检测阈值
+  verify_threshold: 0.6 # 声纹验证阈值
+  confidence_threshold: 0.7 # 置信度阈值
+
+  # 后处理
+  use_smoothing: true # 使用平滑
+  smoothing_window: 5 # 平滑窗口大小
+
+  # 实时推理
+  chunk_size: 1.0 # 音频块大小（秒）
+  overlap: 0.5 # 重叠比例
+  max_queue_size: 10 # 最大队列大小
+
+# =========================== 实验和消融研究配置 ===========================
+experiment:
+  # 实验标识
+  name: "voiceprint_kws_baseline" # 实验名称
+  version: "v1.0" # 版本号
+  description: "声纹+唤醒词基线模型" # 实验描述
+
+  # 消融研究开关
+  ablation_study:
+    disable_conformer: false # 禁用Conformer
+    disable_squeezeformer: false # 禁用SqueezeFormer
+    disable_ecapa: false # 禁用ECAPA-TDNN
+    disable_mobilenet: false # 禁用MobileNet
+    disable_cross_attention: false # 禁用跨模态注意力
+    disable_fusion: false # 禁用特征融合
+
+  # 超参数搜索
+  hyperparameter_search:
+    enabled: false
+    search_space:
+      learning_rate: [1e-4, 5e-4, 1e-3, 5e-3]
+      batch_size: [16, 32, 64]
+      d_model: [128, 256, 512]
+      dropout: [0.1, 0.2, 0.3]
+    num_trials: 20
+    metric: "val_avg_acc"
+    direction: "maximize"
+
+# =========================== 部署配置 ===========================
+deployment:
+  # 模型优化
+  quantization: false # 模型量化
+  pruning: false # 模型剪枝
+  distillation: false # 知识蒸馏
+
+  # 导出格式
+  export_onnx: true # 导出ONNX格式
+  export_torchscript: true # 导出TorchScript格式
+
+  # 性能要求
+  max_latency_ms: 100 # 最大延迟（毫秒）
+  max_memory_mb: 512 # 最大内存占用（MB）
+  target_accuracy: 0.95 # 目标准确率
+
+# =========================== 硬件配置 ===========================
+hardware:
+  # GPU配置
+  gpus: 1 # GPU数量
+  precision: 16 # 精度：16（半精度）或32（单精度）
+
+  # 分布式训练
+  distributed: false # 是否使用分布式训练
+  sync_batchnorm: false # 同步批归一化
+
+  # 内存优化
+  gradient_checkpointing: false # 梯度检查点
+  cpu_offload: false # CPU卸载
