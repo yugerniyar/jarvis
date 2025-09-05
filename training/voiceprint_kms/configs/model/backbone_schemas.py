@@ -1,45 +1,17 @@
 """
-模型配置类定义
-
-这个模块包含所有模型相关的配置类:
-- BaseModelConfig: 模型配置基类
-- EcapaTdnnConfig: ECAPA-TDNN模型配置
-- ConformerConfig: Conformer模型配置
+骨干网络结构模式
+ECAPA-TDNN  声纹识别模型配置
+Conformer   关键词检测模型配置
 
 作者: yuger
-创建时间: 2025-08-21
+创建时间: 2025-09-06
 """
 
-from abc import ABC, abstractmethod  # 抽象基类支持
-from dataclasses import dataclass, field  # 简化配置类的定义
-from typing import List, Optional, Union  # 类型注解
+from abc import abstractmethod
+from dataclasses import dataclass, field
+from typing import List
 
-
-@dataclass
-class BaseModelConfig(ABC):
-    """模型配置基类 - 所有模型配置的父类"""
-
-    # 基本属性
-    name: str            # 模型名称
-    input_dim: int = 80  # 输入特征维度
-    output_dim: int = 512  # 输出特征维度
-
-    # 通用参数
-    dropout: float = 0.2  # Dropout率
-
-    @abstractmethod
-    def validate(self) -> bool:
-        """验证配置参数是否合理 - 子类必须实现"""
-        pass
-
-    def get_model_info(self) -> dict:
-        """获取模型基本信息"""
-        return {
-            "name": self.name,
-            "input_dim": self.input_dim,
-            "output_dim": self.output_dim,
-            "dropout": self.dropout,
-        }
+from .base_schemas import BaseModelConfig
 
 
 @dataclass
@@ -57,7 +29,7 @@ class EcapaTdnnConfig(BaseModelConfig):
 
     # 池化和输出参数
     pooling_type: str = "statistical"  # 池化类型：statistical, temporal, self-attention
-    embedding_dim: int = 192  # 最终声纹嵌入维度
+    embedding_dim: int = 192    # 最终声纹嵌入维度
 
     # 验证方法
     def validate(self) -> bool:
@@ -69,9 +41,8 @@ class EcapaTdnnConfig(BaseModelConfig):
         if not (0 <= self.dropout <= 1):
             raise ValueError("Dropout 必须在 [0,1] 之间")
 
-        # 检查embedding_dim
         if self.embedding_dim <= 0:
-            raise ValueError("Embedding dimension 必须大于0")
+            raise ValueError("Embedding dim 必须大于0")
 
         return True
 
@@ -82,7 +53,6 @@ class ConformerConfig(BaseModelConfig):
     Conformer关键词检测模型配置 
 
     用于多模态系统中的关键词检测组件
-    结合CNN和Transformer的优势处理序列特征
     """
 
     # 模型名称
@@ -93,21 +63,21 @@ class ConformerConfig(BaseModelConfig):
     encoder_dim: int = 512                  # 编码器维度
 
     # 注意力机制参数
-    num_heads: int = 8                     # 多头注意力头数
-    attention_dropout: float = 0.1         # 注意力dropout
+    num_heads: int = 8                     # 注意力头数
+    attention_dropout: float = 0.1         # 注意力Dropout率
 
     # 前馈网络参数
     ff_dim: int = 2048                    # 前馈网络维度
-    ff_dropout: float = 0.1                # 前馈网络dropout
+    ff_dropout: float = 0.1                # 前馈网络Dropout率
     ff_activation: str = "relu"            # 激活函数
 
     # 卷积模块参数
     conv_kernel_size: int = 31             # 卷积核大小
-    conv_dropout: float = 0.1              # 卷积dropout
+    conv_dropout: float = 0.1              # 卷积Dropout率
 
     # 关键词检测参数
-    num_keywords: int = 1                   # 支持的关键词数量 后续训练会进行扩展
-    keyword_threshold: float = 0.5           # 关键词检测阈值
+    num_keywords: int = 1                 # 关键词数量 后续训练会进行扩展
+    keyword_threshold: float = 0.5         # 关键词检测阈值
 
     def validate(self) -> bool:
         """验证配置参数是否合理"""
