@@ -13,6 +13,14 @@ from typing import Dict  # 类型注解,用于定义字典类型
 
 from .base_fusion import BaseFusionConfig  # 导入融合基类
 
+"""
+融合模型配置类
+
+作者: yuger
+创建时间: 2025-09-06
+第一次修改时间: 2025-09-08
+"""
+
 
 @dataclass
 class VoiceprintKeywordFusionConfig(BaseFusionConfig):
@@ -35,7 +43,7 @@ class VoiceprintKeywordFusionConfig(BaseFusionConfig):
 
     # 多任务输出配置
     num_speakers: int = 1000            # 支持的说话人数量，影响声纹分类器维度
-    num_keywords: int = 1               # 支持的关键词数量，当前阶段设为1
+    num_keywords: int = 2               # 支持的关键词数量，当前阶段设为2
     # 任务权重配置 (多任务学习中各任务的损失权重)
     speaker_task_weight: float = 1.0    # 声纹识别任务损失权重
     keyword_task_weight: float = 1.0    # 关键词检测任务损失权重
@@ -101,7 +109,7 @@ class VoiceprintKeywordFusionConfig(BaseFusionConfig):
         return True
 
     # 信息获取方法
-    def get_fusion_info(self) -> dict:
+    def get_task_info(self) -> dict:
         """获取多任务配置信息"""
         return {
             "tasks": {
@@ -124,5 +132,5 @@ class VoiceprintKeywordFusionConfig(BaseFusionConfig):
     def get_complete_info(self) -> dict:
         """获取完整的融合模型配置信息"""
         base_info = super().get_fusion_info()
-        task_info = self.get_fusion_info()
+        task_info = self.get_task_info()
         return {**base_info, "specific_config": task_info}

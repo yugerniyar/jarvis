@@ -1,0 +1,111 @@
+# 多模态融合模型配置文件 v0_1
+# 声纹识别 + 关键词检测融合配置
+# 作者: yuger
+# 创建时间: 2025-09-09
+
+# ==================== 融合模型 v0_1 基础配置 ====================
+voiceprint_keyword_fusion_attention_v0_1:
+  # 基本信息
+  name: "niyar_voiceprint_keyword_fusion_v0_1" # 模型名称
+
+  # 融合策略配置
+  fusion_method: "attention" # 融合方法 可选: "attention", "concat", "weighted"
+  fusion_output_dim: 256 # 融合后输出特征维度 影响后续分类器的输入维度
+
+  # 注意力融合参数 (当fusion_method为"attention"时生效)
+  attention_heads: 8 # 多头注意力机制的头数
+  attention_dropout: 0.1 # 注意力机制的Dropout比例
+
+  # 融合框架参数
+  fusion_layers: 2 # 融合层数
+  use_layer_norm: True # 是否使用层归一化
+  final_dropout: 0.1 # 最终Dropout比例
+  activation: "relu" # 激活函数类型 可选: "relu", "gelu", "swish"
+  residual_connection: True # 是否使用残差连接
+
+  # 输入模态维度配置(对应骨干网络输出)
+  voice_feature_dim: 192 # 声纹特征维度 (如ECAPA-TDNN输出)
+  keyword_feature_dim: 512 # 关键词特征维度 (如Conformer输出)
+
+  # 加权融合参数(当fusion_method为"weighted"时生效)
+  voice_weight: 0.6 # 声纹特征权重
+  keyword_weight: 0.4 # 关键词特征权重
+
+  # 多任务输出配置
+  num_speakers: 1000 # 声纹识别任务的类别数
+  num_keywords: 2 # 支持的关键词数量,当前阶段设置为2
+
+  # 任务权重配置(多任务学习损失权重)
+  speaker_task_weight: 1.0 # 声纹识别任务权重
+  keyword_task_weight: 1.0 # 关键词检测任务权重
+
+  # 特征预处理配置(统一不同模态特征维度)
+  use_feature_projection: True # 是否使用特征投影层
+  voice_projection_dim: 256 # 声纹特征投影维度
+  keyword_projection_dim: 256 # 关键词特征投影维度
+
+# ==================== 实验配置：加权融合 ====================
+voiceprint_keyword_weighted_v1:
+  # 基本信息
+  name: "voiceprint_keyword_weighted_v1"
+
+  # 融合策略配置
+  fusion_method: "weighted" # 使用加权融合
+  fusion_output_dim: 256
+
+  # 融合架构参数
+  fusion_layers: 1 # 简单的加权融合只需1层
+  use_layer_norm: true
+  final_dropout: 0.05 # 降低dropout
+  activation: "relu"
+  residual_connection: false # 加权融合不需要残差
+
+  # 输入模态维度配置
+  voice_feature_dim: 192
+  keyword_feature_dim: 512
+
+  # 加权融合参数
+  voice_weight: 0.7 # 更重视声纹特征
+  keyword_weight: 0.3 # 关键词作为辅助
+
+  # 多任务配置
+  num_speakers: 1000
+  num_keywords: 2
+  speaker_task_weight: 1.2 # 稍微提高声纹任务权重
+  keyword_task_weight: 0.8
+
+  # 特征预处理配置
+  use_feature_projection: true
+  voice_projection_dim: 256
+  keyword_projection_dim: 256
+
+# ==================== 实验配置：拼接融合 ====================
+voiceprint_keyword_concat_v1:
+  # 基本信息
+  name: "voiceprint_keyword_concat_v1"
+
+  # 融合策略配置
+  fusion_method: "concat" # 使用拼接融合
+  fusion_output_dim: 512 # 拼接后需要更大的输出维度
+
+  # 融合架构参数（拼接融合不需要注意力参数）
+  fusion_layers: 3 # 拼接后需要更多层来学习特征关系
+  use_layer_norm: true
+  final_dropout: 0.2 # 增加dropout防止过拟合
+  activation: "gelu" # 使用GELU激活
+  residual_connection: true
+
+  # 输入模态维度配置
+  voice_feature_dim: 192
+  keyword_feature_dim: 512
+
+  # 多任务配置
+  num_speakers: 1000
+  num_keywords: 2
+  speaker_task_weight: 1.0
+  keyword_task_weight: 1.0
+
+  # 特征预处理配置
+  use_feature_projection: false # 拼接融合可以不用投影
+  voice_projection_dim: 256
+  keyword_projection_dim: 256

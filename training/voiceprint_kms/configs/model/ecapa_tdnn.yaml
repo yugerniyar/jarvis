@@ -1,0 +1,54 @@
+# ECAPA-TDNN声纹识别模型配置
+# 作者: yuger
+# 创建时间: 2025-09-09
+
+# ==================== ECAPA-TDNN v0.1 基础配置 ====================
+ecapa_v0_1:
+  # 基本信息
+  name: "niyar_ecapa_tdnn_v0.1" # 模型名称
+  input_dim: 80 # 输入特征维度（如MFCC或FBANK）
+  output_dim: 192 # 输出特征维度（声纹嵌入维度）
+  hidden_dim: 512 # 隐藏层维度
+
+  # 网络结构参数
+  num_layers: 2 # TDNN层数
+  dropout: 0.2 # Dropout比例
+  droppath_rate: 0.0 # Droppath比例
+
+  # 激活和偏置
+  activation: "swish" # 激活函数类型 可选: "relu", "prelu", "gelu" ECAPA适合的激活函数
+  use_bias: True # 是否使用偏置
+
+  # 归一化
+  batch_norm: True # 是否使用批归一化
+  layer_norm: False # 是否使用层归一化
+  norm_eps: 1e-5 # 归一化的epsilon值
+
+  # 权重初始化
+  init_method: "xavier_uniform" # 权重初始化方法 可选: "xavier_uniform", "kaiming_normal"
+  init_gain: 1.0 # 初始化增益
+
+  # 正则化
+  weight_decay: 1e-5 # 权重衰减（L2正则化）
+  label_smoothing: 0.0 # 标签平滑参数
+
+  # 计算配置
+  use_amp: True # 是否使用自动混合精度训练
+  gradient_checkpointing: False # 是否启用梯度检查点以节省内存
+  compile_model: False # 是否使用torch.compile进行模型编译以提升性能
+
+  # 版本和兼容性
+  model_version: "v0_1" # 模型版本
+  framework: "pytorch" # 深度学习框架 可选: "pytorch", "tensorflow"
+
+  # 推理配置
+  eval_mode: false # 是否启用评估模式
+  output_format: "tensor" # 输出格式 可选: "tensor", "numpy", "list"
+  return_intermediate: false # 是否返回中间层输出
+
+  # ECAPA-TDNN特有参数
+  channels: [512, 512, 512, 512, 1536] # 每个TDNN层的通道数
+  kernel_sizes: [5, 3, 3, 3, 1] # 每个TDNN层的卷积核大小
+  dilations: [1, 2, 3, 4, 1] # 每个TDNN层的膨胀率
+  pooling_type: "statistical" # 池化类型 可选: "statistical", "attentive"
+  embedding_dim: 192 # 最终嵌入维度

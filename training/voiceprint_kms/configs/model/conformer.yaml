@@ -1,0 +1,67 @@
+# Conformer 关键词检测模型配置
+# 该配置文件定义了Conformer模型的结构和参数
+# 作者: yuger
+# 创建时间: 2025-09-09
+# ==================== Conformer v0.1 基础配置 ====================
+conformer_v0_1:
+  # 基本信息
+  name: "niyar_conformer_v0.1" # 模型名称
+  input_dim: 80 # 输入特征维度（如MFCC或FBANK）
+  output_dim: 512 # 输出特征维度（关键词嵌入维度）
+  hidden_dim: 256 # 隐藏层维度
+
+  # 网络结构参数
+  num_layers: 6 # Conformer层数,覆盖基类默认值 一般为 4,6,8,12
+  dropout: 0.2 # Dropout比例
+  droppath_rate: 0.0 # Droppath比例
+
+  # 激活和偏置
+  activation: "gelu" # 激活函数类型 可选 "relu", "leaky_relu", "prelu" Conformer适合的激活函数 GELU 激活函数
+  use_bias: True # 是否使用偏置
+
+  # 归一化
+  batch_norm: False # 是否使用批归一化
+  layer_norm: True # 是否使用层归一化
+  norm_eps: 1e-5 # 归一化的epsilon值
+
+  # 权重初始化
+  init_method: "xavier_uniform" # 权重初始化方法 可选: "xavier_uniform", "kaiming_normal"
+  init_gain: 1.0 # 初始化增益
+
+  # 正则化
+  weight_decay: 1e-5 # 权重衰减（L2正则化）
+  label_smoothing: 0.0 # 标签平滑参数
+
+  # 计算配置
+  use_amp: False # 是否使用自动混合精度训练
+  gradient_checkpointing: False # 是否启用梯度检查点以节省内存
+  compile_model: False # 是否使用torch.compile进行模型编译以提升性能
+
+  # 版本和兼容性
+  model_version: "v0_1" # 模型版本
+  framework: "pytorch" # 深度学习框架 可选: "pytorch", "tensorflow"
+
+  # 推理配置
+  eval_mode: false # 是否启用评估模式
+  output_format: "tensor" # 输出格式 可选: "tensor", "numpy", "list"
+  return_intermediate: false # 是否返回中间层输出
+
+  # Conformer特有参数
+  encoder_dim: 512 # Conformer编码器维度
+
+  # 注意力机制参数
+  num_heads: 8 # 多头注意力机制的头数
+  attention_dropout: 0.1 # 注意力机制的Dropout比例
+
+  # 前馈网络参数
+  ff_dim: 2048 # 前馈网络的隐藏层维度
+  ff_dropout: 0.1 # 前馈网络的Dropout比例
+  ff_activation: "gelu" # 前馈网络的激活函数 可选 "gelu", "swiglu", "relu", "swish" Conformer推荐GELU
+
+  # 卷积模块参数
+  conv_kernel_size: 31 # 卷积模块的卷积核大小
+  conv_dropout: 0.1 # 卷积模块的Dropout比例
+
+  # 关键词检测特有参数
+  num_keywords: 2 # 关键词数量,后续训练会扩展
+  keyword_threshold: 0.5 # 关键词检测阈值

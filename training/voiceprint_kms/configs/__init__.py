@@ -20,23 +20,14 @@ SUPPORTED_FORMATS = [".yaml", ".yml", ".json"]
 
 try:
     # 基础组件
-    from .schema import (
-        MainConfig,
-        ModelConfig,
-        EcapaTdnnConfig,
-        ConformerConfig,
-        TrainingConfig,
-        DataConfig,
-        ExperimentConfig
-    )
-
-    # 功能组件
-    from .loader import ConfigLoader
-    from .validator import ConfigValidator
-    from .manager import ConfigManager
-
     # 工具函数
     from .defaults import get_default_config
+    # 功能组件
+    from .loader import ConfigLoader
+    from .manager import ConfigManager
+    from .model import (BaseFusionConfig, BaseModelConfig, ConformerConfig,
+                        EcapaTdnnConfig, VoiceprintKeywordFusionConfig)
+    from .validator import ConfigValidator
 
 except ImportError as e:
     import warnings
